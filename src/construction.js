@@ -75,6 +75,8 @@ export class ConstructionManager {
     this.completed = 0;
     this.failed = 0;
     this.workers = new Set();
+    this.attempts = new Map();
+    this.waitingForMaterials = false;
   }
 
   startCastle(teamId, origin) {
@@ -86,6 +88,8 @@ export class ConstructionManager {
     this.queue = makeCastle(origin);
     this.completed = 0;
     this.failed = 0;
+    this.attempts.clear();
+    this.waitingForMaterials = false;
     this.active = true;
     for (const builder of builders) {
       builder.task = 'building_castle';
@@ -127,6 +131,7 @@ export class ConstructionManager {
           let material = this.getMaterial(bot);
           if (!material) {
             this.queue.unshift(job);
+            this.waitingForMaterials = true;
             this.manager.say(state, 'I am out of building blocks. Bring me stone, cobblestone or planks and I can continue.');
             break;
           }
@@ -140,6 +145,7 @@ export class ConstructionManager {
           material = this.getMaterial(bot);
           if (!material) {
             this.queue.unshift(job);
+            this.waitingForMaterials = true;
             this.manager.say(state, 'I need more building materials before I can continue.');
             break;
           }
@@ -147,6 +153,10 @@ export class ConstructionManager {
           const reference = this.findReference(bot, target);
           if (!reference) {
             // A builder can return to this job later after nearby foundation blocks exist.
+            const key = target.toString();
+            const tries = (this.attempts.get(key) ?? 0) + 1;
+            this.attempts.set(key, tries);
+            if (tries > 12) { this.failed++; continue; }
             this.queue.push(job);
             await sleep(250);
             continue;
@@ -171,10 +181,15 @@ export class ConstructionManager {
     } finally {
       this.workers.delete(bot.username);
       state.task = 'idle';
-      if (this.active && this.queue.length === 0 && this.workers.size === 0) {
+      if (this.active && this.workers.size === 0) {
         this.active = false;
-        console.log(`[build] Castle project finished. Placed/skipped: ${this.completed}; retries: ${this.failed}.`);
-        this.manager.broadcastTeam(state.teamId, 'The castle project is complete. Inspect the build!');
+        if (this.queue.length > 0 || this.waitingForMaterials) {
+          console.log(`[build] Castle paused. Remaining blocks: ${this.queue.length}; skipped: ${this.failed}.`);
+          this.manager.broadcastTeam(state.teamId, 'Construction paused: we need more building blocks or clearer access to the foundation. The project can be restarted after supplies are ready.');
+        } else {
+          console.log(`[build] Castle project finished. Blocks processed: ${this.completed}; skipped: ${this.failed}.`);
+          this.manager.broadcastTeam(state.teamId, 'The castle project is complete. Inspect the build!');
+        }
       }
     }
   }
