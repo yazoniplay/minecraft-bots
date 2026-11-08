@@ -4,3 +4,5 @@ army:
   # Hard cap applied by the plugin to prevent accidental mass-spawning.
   max-units-per-faction: 24
   target-range: 24
+  # Leave false to keep both factions focused on each other, not regular players.
+  attack-players: false
