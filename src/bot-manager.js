@@ -24,14 +24,14 @@ export class BotManager {
   spawn(botConfig) {
     const key = botConfig.username.toLowerCase();
     const existing = this.bots.get(key);
-    if (existing && (existing.spawned || existing.bot.player)) {
+    if (existing && !existing.ended) {
       console.log(`[spawn] ${botConfig.username} is already connected or connecting.`);
       return existing;
     }
     const { server } = this.config;
     const bot = mineflayer.createBot({ host: server.host, port: server.port, username: botConfig.username, version: server.version, auth: server.auth ?? 'offline' });
     bot.loadPlugin(pathfinder);
-    const state = { ...botConfig, bot, memory: loadMemory(botConfig.username), task: 'idle', spawned: false };
+    const state = { ...botConfig, bot, memory: loadMemory(botConfig.username), task: 'idle', spawned: false, ended: false };
     this.bots.set(key, state);
     bot.once('spawn', () => {
       state.spawned = true;
@@ -45,7 +45,7 @@ export class BotManager {
     bot.on('chat', (username, message) => this.onChat(state, username, message));
     bot.on('kicked', reason => console.warn(`[kick] ${bot.username}: ${String(reason).slice(0, 160)}`));
     bot.on('error', error => console.error(`[error] ${bot.username}: ${error.message}`));
-    bot.on('end', () => { state.spawned = false; console.log(`[disconnect] ${bot.username}`); });
+    bot.on('end', () => { state.spawned = false; state.ended = true; console.log(`[disconnect] ${bot.username}`); });
     return state;
   }
   status() {
