@@ -1,59 +1,58 @@
-# Minecraft AI Civilizations
+# NOUR vs CHAOS — Minecraft Player Army
 
-A resource-conscious two-faction Minecraft Java simulation built with Mineflayer.
+A two-faction Minecraft Java simulation built with **Mineflayer**. Every unit is a separate Minecraft client connection and appears as a player in-game. These are not mobs or server-side fake-player entities.
 
-## Current milestone
+## Current features
 
-- Two factions: **NOUR** and **CHAOS**
-- Configurable real Mineflayer player bots with roles and personalities
-- Natural-language intent parsing for basic commander orders
-- Basic follow, stop, defend and scout behaviours
-- Compact per-bot JSON memories
-- Cooperative castle blueprint with multiple builders placing real blocks from their inventories
+- Real player clients with configurable names, roles and personalities
+- NOUR and CHAOS factions
+- Staggered spawning and bounded automatic reconnects
+- Commander chat orders: follow, stop/retreat, defend, attack, scout
+- Faction-aware combat: bots only select configured opposing-faction bots as targets
+- Sword/axe selection and pathfinding pursuit
+- Per-bot JSON memory
+- Cooperative castle blueprint for builders with real inventory materials
 
-The castle plan includes a 21×21 outer curtain wall, four corner towers, a central keep and courtyard paths. The blueprint is generated from the commander's position, then divided through a shared work queue. Builders pathfind to assigned positions and place blocks using normal Minecraft interactions.
-
-**Important:** Builders do not create free materials. They need suitable blocks already in their inventories. Autonomous mining, smelting and crafting are not implemented yet. Construction has not yet been tested on a live server.
+The AI is currently event-driven and rule-based. It does not call an LLM for every decision, so it has no per-bot API bill. This is a prototype, not a fully autonomous civilization yet.
 
 ## Requirements
+
 - Node.js 20+
-- A Minecraft Java server compatible with the configured Mineflayer version
+- Minecraft Java server reachable from the machine running this controller
+- Paper 1.21.4 is the intended initial server target
 
 ## Setup
-```bash
-npm install
-cp config/example.json config/local.json
-```
-Edit `config/local.json`: set the server host/port and your exact Minecraft username as Team NOUR commander. Start with 2–4 bots while testing; the example contains 10.
 
-Use `auth: "offline"` only on a private server configured for offline-mode. Online-mode servers require legitimate Microsoft authentication and a separate authorized account for each bot.
+1. Copy `config/example.json` to `config/local.json`.
+2. Set your server address, port and exact in-game commander username.
+3. Start with 2–4 bots by removing extra entries from the two team arrays and lowering `simulation.maxBots`.
+4. Run `npm install`, then `npm run check`, then `npm start`.
 
-Start with `npm start`; check syntax with `npm run check`.
+Use `auth: "offline"` only on a private server you control that is explicitly configured with `online-mode=false`. Never use this to impersonate accounts or connect to servers without permission. Online-mode servers require legitimate Microsoft authentication for each bot client.
 
-## Natural chat
-The configured commander can speak normally in public chat:
-- "Everyone follow me"
-- "Hold position"
-- "Defend this area"
-- "Scout the area"
-- **"Build a castle"** — starts the shared castle blueprint when the NOUR general can see you and at least one builder is connected.
+## Commander orders
 
-The castle is placed about seven blocks in front of the commander. Give builders stone, cobblestone, stone bricks or planks before starting. If they run out, the project pauses instead of inventing resources.
+Say these in normal Minecraft public chat as the configured NOUR commander:
 
-## Resource design
-- No per-bot language model or continuous inference loop.
-- Small bounded memory files under `data/memories/`.
-- Event-driven chat handling and staggered connections.
-- Shared construction queue; pathfinding only runs while a bot has a task.
+- `Everyone follow me`
+- `Hold position` or `retreat`
+- `Defend this area`
+- `Attack` or `Charge`
+- `Scout the area`
+- `Build a castle` (the general assigns a shared blueprint to available builders)
 
-## Hosting reality
-Free providers commonly sleep, restrict persistent storage, limit memory/CPU, or prohibit long-running game clients. Ten simultaneous bots is the initial test target; 100–300 real connections must be benchmarked and may require multiple machines. Do not assume a free web-service tier can host the full simulation.
+NOUR bots respond to the configured commander. CHAOS bots autonomously engage nearby NOUR bots when ordered to attack/defend; they do not take orders from the NOUR commander. Combat targets are limited to the configured opposing army, not ordinary players.
 
-## Roadmap
-1. Validate bot connections and castle construction on a private server.
-2. Inventory-aware gathering, crafting and supply logistics.
-3. Better natural conversations and squad-level autonomy.
-4. Combat, diplomacy, relationships and emergent betrayal.
-5. Load testing and scaling.
+Builders need suitable blocks in their inventories. Autonomous mining, smelting, crafting and food management are not implemented yet.
+
+## Hosting: important
+
+The Minecraft host and the Mineflayer controller are separate processes. EternalZero's Minecraft panel does not, by itself, prove that it can run this Node.js controller. The controller must run continuously on a separate Node.js host with outbound TCP access to the Minecraft server. GitHub Actions are for builds/tests, not persistent bot hosting.
+
+Do not assume a free web-service tier will keep the controller alive. Confirm the provider permits long-running processes, persistent connections and outbound Minecraft traffic before deploying. Start with 2–4 bots; increase gradually only after monitoring server TPS, memory and network usage. A 100–300 player army is not a safe initial target and may exceed a free Minecraft host's capacity.
+
+## Validation
+
+`npm test` checks the deterministic order parser. `npm run check` checks JavaScript syntax. These checks do not replace a live connection test on your own Paper server.
 
 Run only on servers you own or have permission to use.
