@@ -106,7 +106,7 @@ public final class ArmyPlugin extends JavaPlugin {
     }
 
     private int spawnFaction(Player commander, String faction) {
-        int amount = Math.max(1, Math.min(24, getConfig().getInt("army.units-per-faction", 6)));
+        int cap = Math.max(1, Math.min(24, getConfig().getInt("army.max-units-per-faction", 24)));\n        String factionTag = faction.equals("nour") ? NOUR : CHAOS;\n        int remaining = Math.max(0, cap - count(factionTag));\n        int amount = Math.min(remaining, Math.max(1, getConfig().getInt("army.units-per-faction", 6)));\n        if (amount == 0) return 0;
         Location center = commander.getLocation();
         World world = center.getWorld();
         int spawned = 0;
@@ -181,7 +181,7 @@ public final class ArmyPlugin extends JavaPlugin {
             for (Mob unit : units) {
                 if (unit.getTarget() != null && unit.getTarget().isValid()
                     && isEnemy(unit, unit.getTarget())) continue;
-                LivingEntity target = world.getNearbyLivingEntities(unit.getLocation(), 24, 10, 24).stream()
+                LivingEntity target = world.getNearbyLivingEntities(unit.getLocation(), getConfig().getInt("army.target-range", 24), 10, getConfig().getInt("army.target-range", 24)).stream()
                     .filter(candidate -> candidate != unit && isEnemy(unit, candidate))
                     .min(Comparator.comparingDouble(candidate -> candidate.getLocation().distanceSquared(unit.getLocation())))
                     .orElse(null);
