@@ -1,0 +1,15 @@
+name: MinecraftArmy
+version: 0.1.0
+main: dev.yazoniplay.army.ArmyPlugin
+api-version: '1.21'
+author: Yazoniplay
+description: In-game control panel for the NOUR vs CHAOS Mineflayer army.
+commands:
+  army:
+    description: Control the AI factions.
+    usage: /army <spawn|stop|status|build>
+    permission: minecraftarmy.admin
+permissions:
+  minecraftarmy.admin:
+    description: Allows full control of the AI army.
+    default: op
