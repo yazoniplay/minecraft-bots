@@ -1,0 +1,18 @@
+name: MinecraftArmy
+version: 0.2.0
+main: dev.yazoniplay.army.ArmyPlugin
+api-version: '1.21'
+author: Yazoniplay
+description: Standalone NOUR vs CHAOS server-side AI army for Paper 1.21.4.
+commands:
+  army:
+    description: Deploy and command the AI factions.
+    usage: /army <spawn|stop|status|build>
+    permission: minecraftarmy.admin
+permissions:
+  minecraftarmy.admin:
+    description: Allows full control of the AI army.
+    default: op
+  minecraftarmy.safe:
+    description: Prevents army units from targeting this player.
+    default: false

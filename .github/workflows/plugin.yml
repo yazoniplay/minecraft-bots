@@ -1,0 +1,28 @@
+name: Paper plugin build
+on:
+  push:
+    paths:
+      - 'plugin/**'
+      - '.github/workflows/plugin.yml'
+  pull_request:
+    paths:
+      - 'plugin/**'
+      - '.github/workflows/plugin.yml'
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Build plugin
+        run: mvn -B -f plugin/pom.xml package
+      - name: Upload plugin jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: minecraft-army-paper-1.21.4
+          path: plugin/target/*.jar
