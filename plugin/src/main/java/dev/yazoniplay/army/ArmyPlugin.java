@@ -150,7 +150,7 @@ public final class ArmyPlugin extends JavaPlugin {
         } else {
             gear.setItemInMainHand(new ItemStack(nour ? Material.NETHERITE_AXE : Material.DIAMOND_AXE));
         }
-        gear.setDropChance(EquipmentSlotCompat.HAND, 0.0f);
+        gear.setItemInMainHandDropChance(0.0f);
         gear.setHelmetDropChance(0.0f);
         gear.setChestplateDropChance(0.0f);
         gear.setLeggingsDropChance(0.0f);
