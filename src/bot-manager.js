@@ -56,13 +56,14 @@ export class BotManager {
 
     bot.once('spawn', () => {
       state.spawned = true;
+      if (state.teamId === 'chaos' && state.task === 'idle') state.task = 'attack';
       this.reconnectAttempts.set(state.username.toLowerCase(), 0);
       state.movements = new Movements(bot);
       state.movements.canDig = false;
       state.movements.allow1by1towers = false;
       bot.pathfinder.setMovements(state.movements);
       console.log(`[spawn] ${bot.username} joined ${state.teamName} as ${state.role}.`);
-      this.say(state, `${state.teamName} unit online. Awaiting orders.`);
+      this.say(state, state.teamId === 'chaos' ? 'CHAOS online. Hunting opposing faction units.' : 'NOUR unit online. Awaiting your orders, Commander.');
     });
 
     bot.on('chat', (username, message) => this.onChat(state, username, message));
