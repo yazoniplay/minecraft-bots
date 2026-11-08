@@ -1,0 +1,6 @@
+# Keep this token private. The controller must use the same value in .env.
+bridge:
+  host: 127.0.0.1
+  port: 8765
+  token: "CHANGE_THIS_TO_A_LONG_RANDOM_SECRET"
+  max-queued-commands: 100
