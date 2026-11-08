@@ -1,6 +1,6 @@
-# Keep this token private. The controller must use the same value in .env.
-bridge:
-  host: 127.0.0.1
-  port: 8765
-  token: "CHANGE_THIS_TO_A_LONG_RANDOM_SECRET"
-  max-queued-commands: 100
+army:
+  # Start small. Each unit is a server-side mob with enhanced attributes and faction AI.
+  units-per-faction: 6
+  # Hard cap applied by the plugin to prevent accidental mass-spawning.
+  max-units-per-faction: 24
+  target-range: 24
