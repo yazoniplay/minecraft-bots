@@ -106,7 +106,11 @@ public final class ArmyPlugin extends JavaPlugin {
     }
 
     private int spawnFaction(Player commander, String faction) {
-        int cap = Math.max(1, Math.min(24, getConfig().getInt("army.max-units-per-faction", 24)));\n        String factionTag = faction.equals("nour") ? NOUR : CHAOS;\n        int remaining = Math.max(0, cap - count(factionTag));\n        int amount = Math.min(remaining, Math.max(1, getConfig().getInt("army.units-per-faction", 6)));\n        if (amount == 0) return 0;
+        int cap = Math.max(1, Math.min(24, getConfig().getInt("army.max-units-per-faction", 24)));
+        String factionTag = faction.equals("nour") ? NOUR : CHAOS;
+        int remaining = Math.max(0, cap - count(factionTag));
+        int amount = Math.min(remaining, Math.max(1, getConfig().getInt("army.units-per-faction", 6)));
+        if (amount == 0) return 0;
         Location center = commander.getLocation();
         World world = center.getWorld();
         int spawned = 0;
