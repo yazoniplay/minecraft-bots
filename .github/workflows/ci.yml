@@ -3,15 +3,17 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main, foundation/mvp]
+    branches: [main, foundation/mvp, feature/real-player-army-v2]
 
 jobs:
-  syntax:
+  node:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
       - run: npm install
       - run: npm run check
+      - run: npm test
