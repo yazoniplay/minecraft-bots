@@ -2,10 +2,16 @@ import mineflayer from 'mineflayer';
 import { pathfinder, Movements, goals } from 'mineflayer-pathfinder';
 import { loadMemory, remember } from './memory.js';
 import { personalityReply, replyTo } from './brain.js';
+import { ConstructionManager } from './construction.js';
 const { GoalFollow } = goals;
 
 export class BotManager {
-  constructor(config) { this.config = config; this.bots = new Map(); this.lastChatAt = new Map(); }
+  constructor(config) {
+    this.config = config;
+    this.bots = new Map();
+    this.lastChatAt = new Map();
+    this.construction = new ConstructionManager(this);
+  }
   async start() {
     const entries = Object.entries(this.config.teams).flatMap(([teamId, team]) => team.bots.map(bot => ({ ...bot, teamId, teamName: team.displayName })));
     for (const botConfig of entries) {
@@ -58,14 +64,37 @@ export class BotManager {
     } else if (result.type === 'scout') {
       state.task = 'scout'; this.say(state, 'I will scout nearby and report what I find.');
     } else if (result.type === 'build_request') {
-      state.task = 'construction_requested'; this.say(state, 'I have recorded the construction request. The cooperative blueprint builder is not implemented yet.');
+      if (state.role === 'general') {
+        const outcome = this.startCastle(state.teamId, commander.username);
+        this.say(state, outcome.ok
+          ? `Castle blueprint deployed: ${outcome.total} block positions assigned to ${outcome.builders} builders. We need building materials in their inventories.`
+          : outcome.message);
+      }
     } else if (result.type === 'gather_request') {
-      state.task = 'gather_requested'; this.say(state, 'I have recorded the resource request. Gathering and crafting are not implemented yet.');
+      this.say(state, 'I have recorded the resource request. Autonomous gathering is the next milestone.');
     } else {
       this.say(state, result.reply ?? personalityReply(state.personality));
     }
     remember(state.bot.username, `Heard ${username}: ${message.slice(0, 100)}`);
   }
+  startCastle(teamId, commanderUsername) {
+    const observer = [...this.bots.values()].find(bot => bot.teamId === teamId && bot.spawned);
+    const player = observer?.bot.players[commanderUsername];
+    if (!player?.entity) return { ok: false, message: 'I cannot see the commander. Move within view of the builders and try again.' };
+    const position = player.entity.position.floored();
+    const yaw = player.entity.yaw;
+    const forwardX = -Math.sin(yaw);
+    const forwardZ = Math.cos(yaw);
+    const origin = position.offset(Math.round(forwardX * 7), 0, Math.round(forwardZ * 7));
+    return this.construction.startCastle(teamId, origin);
+  }
+  broadcastTeam(teamId, message) {
+    for (const state of this.bots.values()) if (state.teamId === teamId) this.say(state, message);
+  }
   say(state, message) { if (state.spawned) state.bot.chat(message.slice(0, 200)); }
-  stop() { for (const state of this.bots.values()) state.bot.quit('Controller shutting down'); this.bots.clear(); }
+  stop() {
+    this.construction.stop();
+    for (const state of this.bots.values()) state.bot.quit('Controller shutting down');
+    this.bots.clear();
+  }
 }
