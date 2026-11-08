@@ -12,7 +12,8 @@ export class BotManager {
     this.lastChatAt = new Map();
     this.construction = new ConstructionManager(this);
   }
-  async start() {
+  async start({ autoSpawn = true } = {}) {
+    if (!autoSpawn) return;
     const entries = Object.entries(this.config.teams).flatMap(([teamId, team]) => team.bots.map(bot => ({ ...bot, teamId, teamName: team.displayName })));
     for (const botConfig of entries) {
       this.spawn(botConfig);
@@ -21,11 +22,17 @@ export class BotManager {
     console.log(`[army] Started ${this.bots.size} configured bots across two factions.`);
   }
   spawn(botConfig) {
+    const key = botConfig.username.toLowerCase();
+    const existing = this.bots.get(key);
+    if (existing && (existing.spawned || existing.bot.player)) {
+      console.log(`[spawn] ${botConfig.username} is already connected or connecting.`);
+      return existing;
+    }
     const { server } = this.config;
     const bot = mineflayer.createBot({ host: server.host, port: server.port, username: botConfig.username, version: server.version, auth: server.auth ?? 'offline' });
     bot.loadPlugin(pathfinder);
     const state = { ...botConfig, bot, memory: loadMemory(botConfig.username), task: 'idle', spawned: false };
-    this.bots.set(botConfig.username.toLowerCase(), state);
+    this.bots.set(key, state);
     bot.once('spawn', () => {
       state.spawned = true;
       state.movements = new Movements(bot);
@@ -39,6 +46,19 @@ export class BotManager {
     bot.on('kicked', reason => console.warn(`[kick] ${bot.username}: ${String(reason).slice(0, 160)}`));
     bot.on('error', error => console.error(`[error] ${bot.username}: ${error.message}`));
     bot.on('end', () => { state.spawned = false; console.log(`[disconnect] ${bot.username}`); });
+    return state;
+  }
+  status() {
+    const configured = Object.entries(this.config.teams).flatMap(([teamId, team]) => team.bots.map(bot => ({ ...bot, teamId })));
+    const byTeam = {};
+    for (const [teamId] of Object.entries(this.config.teams)) byTeam[teamId] = { connected: 0, configured: this.config.teams[teamId].bots.length };
+    for (const state of this.bots.values()) if (state.spawned) byTeam[state.teamId].connected++;
+    return {
+      total: configured.length,
+      connected: [...this.bots.values()].filter(state => state.spawned).length,
+      connecting: [...this.bots.values()].filter(state => !state.spawned && state.bot.player).length,
+      byTeam
+    };
   }
   onChat(state, username, message) {
     if (username === state.bot.username || message.startsWith('!')) return;
