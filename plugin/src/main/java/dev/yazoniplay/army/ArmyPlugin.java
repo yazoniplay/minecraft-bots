@@ -202,7 +202,7 @@ public final class ArmyPlugin extends JavaPlugin {
                 || (tags.contains(CHAOS) && candidate.getScoreboardTags().contains(CHAOS));
             return !same;
         }
-        return candidate instanceof Player player && !player.hasPermission("minecraftarmy.safe");
+        return getConfig().getBoolean("army.attack-players", false)\n            && candidate instanceof Player player && !player.hasPermission("minecraftarmy.safe");
     }
 
     private int removeArmy() {
