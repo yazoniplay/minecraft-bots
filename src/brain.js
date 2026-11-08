@@ -7,20 +7,24 @@ const personalities = {
   cunning: ['There may be another way.', 'I will consider our options.'],
   aggressive: ['Then let us stand our ground.', 'We should be ready.']
 };
+
 export function personalityReply(personality = 'patient') {
   const phrases = personalities[personality] ?? personalities.patient;
   return phrases[Math.floor(Math.random() * phrases.length)];
 }
+
 export function interpretOrder(message) {
   const text = message.toLowerCase();
   if (/\b(follow me|come with me|come here|follow)\b/.test(text)) return { type: 'follow' };
-  if (/\b(stop|stay there|hold position|stand down)\b/.test(text)) return { type: 'stop' };
-  if (/\b(defend|guard|protect)\b/.test(text)) return { type: 'defend' };
+  if (/\b(stop|stay there|hold position|stand down|retreat)\b/.test(text)) return { type: 'stop' };
+  if (/\b(defend|guard|protect|hold this area)\b/.test(text)) return { type: 'defend' };
+  if (/\b(attack|charge|fight|engage|advance)\b/.test(text)) return { type: 'attack' };
   if (/\b(scout|explore|look around|investigate)\b/.test(text)) return { type: 'scout' };
   if (/\b(build|construct|make)\b/.test(text) && /\b(castle|fortress|wall|base|house)\b/.test(text)) return { type: 'build_request' };
   if (/\b(gather|get|collect|mine)\b/.test(text) && /\b(wood|stone|iron|food|resources)\b/.test(text)) return { type: 'gather_request' };
   return { type: 'conversation' };
 }
+
 export function replyTo(message, bot) {
   const order = interpretOrder(message);
   if (order.type !== 'conversation') return order;
