@@ -1,0 +1,29 @@
+{
+  "server": { "host": "YOUR_SERVER_ADDRESS", "port": 25565, "version": "1.21.4", "auth": "offline" },
+  "commander": { "username": "YourMinecraftName", "team": "nour" },
+  "simulation": {
+    "maxBots": 10,
+    "spawnDelayMs": 2200,
+    "decisionIntervalMs": 1800,
+    "chatCooldownMs": 5000,
+    "reconnect": true,
+    "reconnectDelayMs": 5000,
+    "maxReconnectAttempts": 8
+  },
+  "teams": {
+    "nour": { "displayName": "NOUR", "bots": [
+      { "username": "Nour_General", "role": "general", "personality": "strategic" },
+      { "username": "Nour_Builder1", "role": "builder", "personality": "patient" },
+      { "username": "Nour_Builder2", "role": "builder", "personality": "ambitious" },
+      { "username": "Nour_Scout", "role": "scout", "personality": "curious" },
+      { "username": "Nour_Guard", "role": "soldier", "personality": "loyal" }
+    ]},
+    "chaos": { "displayName": "CHAOS", "bots": [
+      { "username": "Chaos_General", "role": "general", "personality": "cunning" },
+      { "username": "Chaos_Builder1", "role": "builder", "personality": "ambitious" },
+      { "username": "Chaos_Builder2", "role": "builder", "personality": "patient" },
+      { "username": "Chaos_Scout", "role": "scout", "personality": "curious" },
+      { "username": "Chaos_Guard", "role": "soldier", "personality": "aggressive" }
+    ]}
+  }
+}
