@@ -12,6 +12,15 @@ export function createActions(bot, config, log) {
     bot.pathfinder.setMovements(movements);
   }
 
+  async function craftItem(name, count = 1, table = null) {
+    const item = bot.registry.itemsByName[name];
+    if (!item) return false;
+    const recipes = bot.recipesFor(item.id, null, count, table);
+    if (!recipes.length) return false;
+    await bot.craft(recipes[0], count, table);
+    return true;
+  }
+
   async function eatBestFood() {
     const foods = bot.inventory.items().filter(item =>
       /bread|cooked_|apple|carrot|potato|beetroot|melon_slice|sweet_berries|golden_apple/.test(item.name)
@@ -69,27 +78,32 @@ export function createActions(bot, config, log) {
   }
 
   async function ensureBasicTools() {
-    const items = bot.inventory.items();
-    const hasAxe = items.some(item => /_axe$/.test(item.name));
-    const logs = items.filter(item => item.name.endsWith("_log") || item.name.endsWith("_stem"));
-    const planks = items.filter(item => item.name.endsWith("_planks"));
-    if (!hasAxe && logs.length) {
-      const logItem = logs[0];
-      const plankName = logItem.name.replace(/_log$|_stem$/, "_planks");
-      const plank = bot.registry.itemsByName[plankName];
-      if (plank) await bot.craft(plank, 1, null).catch(() => {});
+    const logs = bot.inventory.items().filter(item =>
+      item.name.endsWith("_log") || item.name.endsWith("_stem")
+    );
+
+    // Turn collected logs into their matching planks using the actual recipe API.
+    if (logs.length) {
+      const plankName = logs[0].name.replace(/_log$|_stem$/, "_planks");
+      const plankCount = bot.inventory.items()
+        .filter(item => item.name === plankName)
+        .reduce((n, item) => n + item.count, 0);
+      if (plankCount < 8 && await craftItem(plankName, 1)) {
+        log("Crafted", plankName);
+        return true;
+      }
     }
 
-    const tableItem = bot.registry.itemsByName.crafting_table;
-    const hasTable = items.some(item => item.name === "crafting_table");
+    const hasTable = bot.inventory.items().some(item => item.name === "crafting_table");
     const plankCount = bot.inventory.items()
       .filter(item => item.name.endsWith("_planks"))
       .reduce((n, item) => n + item.count, 0);
-    if (!hasTable && plankCount >= 4 && tableItem) {
-      await bot.craft(tableItem, 1, null).catch(() => {});
+    if (!hasTable && plankCount >= 4 && await craftItem("crafting_table", 1)) {
+      log("Crafted crafting table");
+      return true;
     }
 
-    // Tool crafting that requires a placed table is added in the next milestone.
+    // Placing the table and crafting a full tool set is the next build milestone.
     return false;
   }
 
