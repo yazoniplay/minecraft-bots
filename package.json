@@ -1,0 +1,22 @@
+{
+  "name": "autonomous-minecraft-bot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "An autonomous Minecraft Java Edition survival bot for multiplayer servers",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "check": "node --check src/index.js && node --check src/brain.js && node --check src/actions.js"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "mineflayer": "^4.31.0",
+    "mineflayer-pathfinder": "^2.4.5",
+    "mineflayer-collectblock": "^1.5.0",
+    "mineflayer-pvp": "^1.3.2",
+    "mineflayer-tool": "^1.2.0",
+    "vec3": "^0.1.10"
+  }
+}
