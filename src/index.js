@@ -26,13 +26,13 @@ const bot = mineflayer.createBot({
   port: config.port,
   username: config.username,
   auth: config.auth,
-  version: config.version === "auto" ? false : config.version
+  ...(config.version !== "auto" ? { version: config.version } : {})
 });
 
 bot.loadPlugin(pathfinder);
 bot.loadPlugin(collectBlock.plugin ?? collectBlock);
-bot.loadPlugin(pvp);
-bot.loadPlugin(tool);
+bot.loadPlugin(pvp.plugin ?? pvp);
+bot.loadPlugin(tool.plugin ?? tool);
 
 let stopBrain;
 
